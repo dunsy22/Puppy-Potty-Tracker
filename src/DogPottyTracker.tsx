@@ -1,25 +1,11 @@
 // DogPottyTracker.tsx
 import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { format, formatDistanceToNow, differenceInMinutes } from 'date-fns';
 
-// Simple UI components to avoid missing external dependencies
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'destructive' | 'default' };
-const Button: React.FC<ButtonProps> = ({ variant = 'default', className = '', ...props }) => {
-  const base = 'px-3 py-1 rounded font-semibold';
-  const variantClass = variant === 'destructive' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white';
-  return <button className={`${base} ${variantClass} ${className}`} {...props} />;
-};
-
-const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = '', ...props }) => (
-  <div className={`border rounded shadow-sm ${className}`} {...props} />
-);
-
-const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = '', ...props }) => (
-  <div className={`p-4 ${className}`} {...props} />
-);
-
 const DEFAULT_THRESHOLD_HOURS = 8.0;
-const AUDIO_URL = "/alarm.mp3"; // Add your audio file to the public directory
+const AUDIO_URL = "/alarm.mp3";
 
 export default function DogPottyTracker() {
   const [lastPeeTime, setLastPeeTime] = useState<Date | null>(null);
@@ -35,14 +21,23 @@ export default function DogPottyTracker() {
     const storedPoop = localStorage.getItem("lastPoopTime");
     const storedHistory = localStorage.getItem("history");
     const storedThreshold = localStorage.getItem("thresholdHours");
-    if (storedPee) setLastPeeTime(new Date(storedPee));
-    if (storedPoop) setLastPoopTime(new Date(storedPoop));
+
+    if (storedPee) {
+      const date = new Date(storedPee);
+      if (!isNaN(date.getTime())) setLastPeeTime(date);
+    }
+
+    if (storedPoop) {
+      const date = new Date(storedPoop);
+      if (!isNaN(date.getTime())) setLastPoopTime(date);
+    }
+
     if (storedHistory) setHistory(JSON.parse(storedHistory));
     if (storedThreshold) setThresholdHours(parseFloat(storedThreshold));
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60000); // every minute
+    const interval = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -123,10 +118,14 @@ export default function DogPottyTracker() {
       <Card>
         <CardContent className="space-y-4">
           <div>
-            <strong>Last Pee:</strong> {lastPeeTime ? `${formatDistanceToNow(lastPeeTime, { addSuffix: true })} (${format(lastPeeTime, 'PPpp')})` : "Not recorded"}
+            <strong>Last Pee:</strong> {lastPeeTime
+              ? `${formatDistanceToNow(lastPeeTime, { addSuffix: true })} (${format(lastPeeTime, 'PPpp')})`
+              : "Not recorded"}
           </div>
           <div>
-            <strong>Last Poop:</strong> {lastPoopTime ? `${formatDistanceToNow(lastPoopTime, { addSuffix: true })} (${format(lastPoopTime, 'PPpp')})` : "Not recorded"}
+            <strong>Last Poop:</strong> {lastPoopTime
+              ? `${formatDistanceToNow(lastPoopTime, { addSuffix: true })} (${format(lastPoopTime, 'PPpp')})`
+              : "Not recorded"}
           </div>
           <div className="space-x-2">
             <Button onClick={() => saveAndTrack("pee")}>Mark Pee</Button>
@@ -156,8 +155,3 @@ export default function DogPottyTracker() {
   );
 }
 
-// PWA Support
-// Add the following files to complete PWA functionality:
-// 1. public/manifest.json
-// 2. public/manifest-icon.png
-// 3. src/service-worker.ts (or js) and register it in your main index.tsx
