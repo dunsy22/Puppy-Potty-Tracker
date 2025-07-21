@@ -1,8 +1,22 @@
 // DogPottyTracker.tsx
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { format, formatDistanceToNow, differenceInMinutes } from 'date-fns';
+
+// Simple UI components to avoid missing external dependencies
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'destructive' | 'default' };
+const Button: React.FC<ButtonProps> = ({ variant = 'default', className = '', ...props }) => {
+  const base = 'px-3 py-1 rounded font-semibold';
+  const variantClass = variant === 'destructive' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white';
+  return <button className={`${base} ${variantClass} ${className}`} {...props} />;
+};
+
+const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = '', ...props }) => (
+  <div className={`border rounded shadow-sm ${className}`} {...props} />
+);
+
+const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = '', ...props }) => (
+  <div className={`p-4 ${className}`} {...props} />
+);
 
 const DEFAULT_THRESHOLD_HOURS = 8.0;
 const AUDIO_URL = "/alarm.mp3"; // Add your audio file to the public directory
