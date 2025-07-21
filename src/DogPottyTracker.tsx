@@ -1,5 +1,5 @@
 // DogPottyTracker.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { format, formatDistanceToNow, differenceInMinutes } from 'date-fns';
@@ -14,7 +14,7 @@ export default function DogPottyTracker() {
   const [now, setNow] = useState<Date>(new Date());
   const [thresholdHours, setThresholdHours] = useState<number>(DEFAULT_THRESHOLD_HOURS);
   const [alarmActive, setAlarmActive] = useState<boolean>(false);
-  const audio = new Audio(AUDIO_URL);
+  const audioRef = useRef(new Audio(AUDIO_URL));
 
   useEffect(() => {
     const storedPee = localStorage.getItem("lastPeeTime");
@@ -42,11 +42,17 @@ export default function DogPottyTracker() {
   }, []);
 
   useEffect(() => {
+    const audio = audioRef.current;
+
     if (isTimeToGoOut()) {
       if (!alarmActive) {
-        audio.loop = true;
-        audio.play().catch(() => {});
-        setAlarmActive(true);
+        try {
+          audio.loop = true;
+          audio.play().catch(() => {});
+          setAlarmActive(true);
+        } catch (e) {
+          console.error("Alarm playback failed:", e);
+        }
       }
     } else {
       audio.pause();
@@ -86,6 +92,7 @@ export default function DogPottyTracker() {
   };
 
   const acknowledgeAlert = () => {
+    const audio = audioRef.current;
     audio.pause();
     audio.currentTime = 0;
     setAlarmActive(false);
